@@ -1,0 +1,10 @@
+doors:
+  - name: "MED-BAY 04"
+    answer: "PATHOGENS"
+    grid: ["P", "S", "N", "A", "O", "E", "T", "H", "G"]
+  - name: "RESEARCH LAB"
+    answer: "COSMOLOGY"
+    grid: ["C", "O", "G", "M", "S", "Y", "O", "L", "O"]
+  - name: "ARMORY SEC"
+    answer: "PROJECTIL"
+    grid: ["P", "R", "O", "E", "J", "I", "L", "I", "T"]

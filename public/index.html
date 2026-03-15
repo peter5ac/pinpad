@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Station Access Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-deep: #12100d;
+        --bg-mid: #1f1a14;
+        --steel-dark: #2b241d;
+        --steel-mid: #3a3128;
+        --rust: #8a4b2f;
+        --rust-soft: #5d3526;
+        --amber: #f2bf7b;
+        --amber-dim: #9c6c3f;
+        --ok: #8fd07a;
+        --err: #d96c5f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body,
+      #root {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        background: radial-gradient(circle at 18% 12%, #3c3025 0%, var(--bg-deep) 36%),
+          linear-gradient(160deg, #13100c 0%, var(--bg-mid) 100%);
+        color: #e6d8bf;
+      }
+
+      body {
+        font-family: Rajdhani, sans-serif;
+      }
+
+      .orbitron {
+        font-family: Orbitron, sans-serif;
+        letter-spacing: 0.08em;
+      }
+
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.32;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(242, 191, 123, 0.08) 0px,
+          rgba(242, 191, 123, 0.08) 1px,
+          rgba(8, 6, 4, 0) 2px,
+          rgba(8, 6, 4, 0) 3px
+        );
+        mix-blend-mode: soft-light;
+        animation: scan-drift 4.2s linear infinite;
+      }
+
+      .steel {
+        background: linear-gradient(145deg, rgba(52, 43, 34, 0.96) 0%, rgba(34, 28, 22, 0.98) 100%);
+        border: 1px solid rgba(242, 191, 123, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(234, 194, 140, 0.08),
+          inset 0 0 45px rgba(72, 45, 28, 0.28),
+          0 30px 65px rgba(8, 6, 4, 0.65);
+      }
+
+      .noise {
+        position: relative;
+      }
+
+      .noise::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        background-image:
+          radial-gradient(rgba(228, 177, 120, 0.11) 1px, transparent 1px),
+          linear-gradient(160deg, rgba(122, 71, 43, 0.2), rgba(0, 0, 0, 0));
+        background-size: 3px 3px, 100% 100%;
+        opacity: 0.2;
+      }
+
+      .worn-shell::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 8% 14%, rgba(255, 224, 187, 0.14) 0 3%, transparent 16%),
+          radial-gradient(circle at 92% 86%, rgba(117, 67, 41, 0.25) 0 7%, transparent 22%),
+          linear-gradient(110deg, transparent 0%, rgba(255, 202, 138, 0.05) 50%, transparent 100%);
+        mix-blend-mode: overlay;
+      }
+
+      .worn-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          repeating-linear-gradient(
+            -13deg,
+            rgba(240, 200, 145, 0.04) 0,
+            rgba(240, 200, 145, 0.04) 1px,
+            transparent 1px,
+            transparent 9px
+          ),
+          repeating-linear-gradient(
+            72deg,
+            rgba(50, 30, 20, 0.1) 0,
+            rgba(50, 30, 20, 0.1) 1px,
+            transparent 1px,
+            transparent 13px
+          );
+        opacity: 0.5;
+        mix-blend-mode: multiply;
+      }
+
+      .trace-overlay {
+        position: absolute;
+        inset: 10px;
+        border-radius: 14px;
+        pointer-events: none;
+        background:
+          repeating-linear-gradient(
+            to right,
+            rgba(242, 191, 123, 0.08) 0,
+            rgba(242, 191, 123, 0.08) 1px,
+            transparent 1px,
+            transparent 24px
+          ),
+          repeating-linear-gradient(
+            to bottom,
+            rgba(242, 191, 123, 0.06) 0,
+            rgba(242, 191, 123, 0.06) 1px,
+            transparent 1px,
+            transparent 21px
+          );
+        opacity: 0.22;
+        mix-blend-mode: screen;
+        animation: trace-wander 7.8s var(--ease-out-quart) infinite;
+      }
+
+      .fault-flicker {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(255, 150, 80, 0.08) 48%, rgba(0, 0, 0, 0) 100%),
+          repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 17px,
+            rgba(255, 175, 98, 0.07) 18px,
+            transparent 19px
+          );
+        opacity: 0.28;
+        mix-blend-mode: screen;
+        animation: fault-jump 2.3s steps(1, end) infinite;
+      }
+
+      .crt-flicker {
+        animation: crt-flicker 2.7s steps(1, end) infinite;
+      }
+
+      .status-fault {
+        animation: status-pulse 1.8s var(--ease-out-expo) infinite;
+      }
+
+      .focus-ring:focus-visible {
+        outline: 2px solid rgba(242, 191, 123, 0.92);
+        outline-offset: 2px;
+      }
+
+      .door-name {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+
+      :root {
+        --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes crt-flicker {
+        0%,
+        17%,
+        19%,
+        45%,
+        47%,
+        73%,
+        75%,
+        100% {
+          opacity: 1;
+          filter: saturate(1);
+        }
+        18%,
+        46%,
+        74% {
+          opacity: 0.86;
+          filter: saturate(0.74);
+        }
+      }
+
+      @keyframes scan-drift {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(4px);
+        }
+      }
+
+      @keyframes trace-wander {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0);
+        }
+        25% {
+          transform: translate3d(1px, -1px, 0);
+        }
+        50% {
+          transform: translate3d(-1px, 1px, 0);
+        }
+        75% {
+          transform: translate3d(1px, 1px, 0);
+        }
+      }
+
+      @keyframes fault-jump {
+        0%,
+        84%,
+        100% {
+          opacity: 0;
+          transform: translateY(0);
+        }
+        85%,
+        89% {
+          opacity: 0.22;
+          transform: translateY(-1px);
+        }
+        90%,
+        94% {
+          opacity: 0.38;
+          transform: translateY(2px);
+        }
+      }
+
+      @keyframes status-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 rgba(242, 191, 123, 0);
+        }
+        50% {
+          box-shadow: 0 0 22px rgba(242, 191, 123, 0.28);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div class="scanlines"></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/": "https://esm.sh/react@18.3.1/",
+          "react-dom": "https://esm.sh/react-dom@18.3.1",
+          "react-dom/": "https://esm.sh/react-dom@18.3.1/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import React, { useEffect, useMemo, useRef, useState } from "react";
+      import { createRoot } from "react-dom/client";
+      import htm from "https://esm.sh/htm@3.1.1";
+      import { motion, AnimatePresence, useReducedMotion } from "https://esm.sh/framer-motion@11.11.17?external=react,react-dom";
+      import { ShieldAlert, Lock, CheckCircle2, Radar, RefreshCw } from "https://esm.sh/lucide-react@0.454.0?external=react";
+      import { load as loadYaml } from "https://esm.sh/js-yaml@4.1.0";
+
+      const html = htm.bind(React.createElement);
+
+      const MAX_ATTEMPTS = 5;
+      const INACTIVITY_MS = 30000;
+      const ERROR_RESET_MS = 1500;
+      const ADMIN_TAP_WINDOW_MS = 1200;
+
+      function createAudioEngine() {
+        let ctx = null;
+        let master = null;
+        let compressor = null;
+
+        function ensureContext() {
+          if (!ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return null;
+            ctx = new AudioContext();
+          }
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(() => {});
+          }
+          return ctx;
+        }
+
+        function ensureChain(context) {
+          if (master && compressor) {
+            return;
+          }
+          master = context.createGain();
+          compressor = context.createDynamicsCompressor();
+
+          compressor.threshold.setValueAtTime(-24, context.currentTime);
+          compressor.knee.setValueAtTime(20, context.currentTime);
+          compressor.ratio.setValueAtTime(12, context.currentTime);
+          compressor.attack.setValueAtTime(0.003, context.currentTime);
+          compressor.release.setValueAtTime(0.22, context.currentTime);
+
+          master.gain.setValueAtTime(1.55, context.currentTime);
+          master.connect(compressor);
+          compressor.connect(context.destination);
+        }
+
+        async function unlock() {
+          const context = ensureContext();
+          if (!context) return false;
+          ensureChain(context);
+
+          if (context.state === "suspended") {
+            try {
+              await context.resume();
+            } catch {
+              return false;
+            }
+          }
+
+          if (context.state !== "running") {
+            return false;
+          }
+
+          // iOS reliably unlocks Web Audio when a source node is started during a gesture.
+          const buffer = context.createBuffer(1, 1, context.sampleRate);
+          const source = context.createBufferSource();
+          const pulseGain = context.createGain();
+          source.buffer = buffer;
+          pulseGain.gain.setValueAtTime(0.00001, context.currentTime);
+          source.connect(pulseGain);
+          pulseGain.connect(master);
+          source.start(context.currentTime);
+          return true;
+        }
+
+        function tone(freq, duration, type, gainValue, when, glideTo = null) {
+          const context = ensureContext();
+          if (!context) return;
+          if (context.state !== "running") return;
+          ensureChain(context);
+          const osc = context.createOscillator();
+          const gain = context.createGain();
+          const shaper = context.createWaveShaper();
+
+          shaper.curve = new Float32Array([-0.8, -0.2, 0, 0.2, 0.8]);
+          shaper.oversample = "4x";
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, when);
+          if (glideTo) {
+            osc.frequency.exponentialRampToValueAtTime(glideTo, when + duration);
+          }
+
+          gain.gain.setValueAtTime(0.0001, when);
+          gain.gain.exponentialRampToValueAtTime(gainValue, when + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+
+          osc.connect(shaper);
+          shaper.connect(gain);
+          gain.connect(master);
+
+          osc.start(when);
+          osc.stop(when + duration + 0.02);
+        }
+
+        return {
+          unlock,
+          click() {
+            const context = ensureContext();
+            if (!context) return;
+            const now = context.currentTime;
+            tone(220, 0.08, "square", 0.14, now, 180);
+          },
+          success() {
+            const context = ensureContext();
+            if (!context) return;
+            const now = context.currentTime;
+            tone(330, 0.12, "sawtooth", 0.11, now);
+            tone(440, 0.12, "triangle", 0.11, now + 0.1);
+            tone(554.37, 0.17, "square", 0.12, now + 0.2);
+          },
+          error() {
+            const context = ensureContext();
+            if (!context) return;
+            const now = context.currentTime;
+            tone(190, 0.16, "sawtooth", 0.13, now, 120);
+            tone(130, 0.2, "square", 0.12, now + 0.1, 90);
+          },
+          reset() {
+            const context = ensureContext();
+            if (!context) return;
+            const now = context.currentTime;
+            tone(250, 0.07, "triangle", 0.1, now);
+          }
+        };
+      }
+
+      function normalizeDoor(door, index) {
+        const name = typeof door?.name === "string" && door.name.trim() ? door.name.trim() : `Door ${index + 1}`;
+        const answer = typeof door?.answer === "string" ? door.answer.trim().toUpperCase() : "";
+        const rawGrid = Array.isArray(door?.grid) ? door.grid : [];
+        const grid = rawGrid.map((value) => String(value).trim().toUpperCase()).slice(0, 9);
+        if (answer.length !== 9 || grid.length !== 9) {
+          return null;
+        }
+        return { name, answer, grid };
+      }
+
+      function slugifyDoorName(name) {
+        return String(name)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      function resolveDoorIndexFromUrl(doors) {
+        const params = new URLSearchParams(window.location.search);
+        let rawDoor = params.get("door");
+
+        if (!rawDoor) {
+          const parts = window.location.pathname.split("/").filter(Boolean);
+          if (parts.length >= 2 && (parts[0] === "door" || parts[0] === "d")) {
+            rawDoor = decodeURIComponent(parts[1]);
+          }
+        }
+
+        if (!rawDoor) {
+          return 0;
+        }
+
+        if (/^\d+$/.test(rawDoor)) {
+          const idx = Number(rawDoor);
+          if (idx >= 0 && idx < doors.length) {
+            return idx;
+          }
+        }
+
+        const normalizedParam = slugifyDoorName(rawDoor);
+        const matchedIndex = doors.findIndex((door) => slugifyDoorName(door.name) === normalizedParam);
+        return matchedIndex >= 0 ? matchedIndex : -1;
+      }
+
+      function App() {
+        const reduceMotion = useReducedMotion();
+        const audio = useRef(createAudioEngine());
+        const [doors, setDoors] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [errorText, setErrorText] = useState("");
+        const [doorIndex, setDoorIndex] = useState(0);
+        const [doorNotFound, setDoorNotFound] = useState(false);
+
+        const [sequence, setSequence] = useState([]);
+        const [traces, setTraces] = useState({});
+        const [attempts, setAttempts] = useState(0);
+        const [locked, setLocked] = useState(false);
+        const [status, setStatus] = useState("idle");
+        const [statusText, setStatusText] = useState("Awaiting input");
+        const [audioArmed, setAudioArmed] = useState(false);
+
+        const errorTimerRef = useRef(null);
+        const inactivityTimerRef = useRef(null);
+        const adminTapRef = useRef([]);
+
+        const activeDoor = doors[doorIndex] || null;
+
+        const targetChars = useMemo(() => {
+          if (!activeDoor) return [];
+          return activeDoor.answer.split("");
+        }, [activeDoor]);
+
+        const clearTimers = () => {
+          if (errorTimerRef.current) {
+            clearTimeout(errorTimerRef.current);
+            errorTimerRef.current = null;
+          }
+          if (inactivityTimerRef.current) {
+            clearTimeout(inactivityTimerRef.current);
+            inactivityTimerRef.current = null;
+          }
+        };
+
+        const hardResetProgress = (reason = "reset") => {
+          setSequence([]);
+          setTraces({});
+          if (!locked) {
+            setStatus("idle");
+            setStatusText(reason === "inactivity" ? "Session timed out" : "Awaiting input");
+          }
+          if (reason !== "error") {
+            audio.current.reset();
+          }
+        };
+
+        const fullAdminReset = () => {
+          clearTimers();
+          setLocked(false);
+          setAttempts(0);
+          setStatus("idle");
+          setStatusText("Admin override complete");
+          setSequence([]);
+          setTraces({});
+          audio.current.reset();
+        };
+
+        useEffect(() => {
+          let active = true;
+
+          async function readDoors() {
+            setLoading(true);
+            setErrorText("");
+            try {
+              const response = await fetch("/doors.yaml", { cache: "no-store" });
+              if (!response.ok) {
+                throw new Error(`Failed to fetch doors.yaml (${response.status})`);
+              }
+              const text = await response.text();
+              const parsed = loadYaml(text);
+              const rawDoors = Array.isArray(parsed?.doors) ? parsed.doors : [];
+              const cleaned = rawDoors
+                .map((door, index) => normalizeDoor(door, index))
+                .filter(Boolean);
+              if (!cleaned.length) {
+                throw new Error("No valid doors found in doors.yaml");
+              }
+              if (active) {
+                const resolvedIndex = resolveDoorIndexFromUrl(cleaned);
+                if (resolvedIndex < 0) {
+                  setDoorNotFound(true);
+                  setDoors(cleaned);
+                  setDoorIndex(0);
+                } else {
+                  setDoorNotFound(false);
+                  setDoors(cleaned);
+                  setDoorIndex(resolvedIndex);
+                }
+              }
+            } catch (err) {
+              if (active) {
+                setErrorText(err instanceof Error ? err.message : "Unable to load doors.yaml");
+              }
+            } finally {
+              if (active) {
+                setLoading(false);
+              }
+            }
+          }
+
+          readDoors();
+
+          return () => {
+            active = false;
+          };
+        }, []);
+
+        const armAudio = async () => {
+          const armed = await audio.current.unlock();
+          if (armed) {
+            setAudioArmed(true);
+          }
+          return armed;
+        };
+
+        const armAudioFromGesture = () => {
+          if (!audioArmed) {
+            armAudio().catch(() => {});
+          }
+        };
+
+        useEffect(() => {
+          const warmArm = () => {
+            armAudio();
+          };
+
+          window.addEventListener("pointerdown", warmArm, { once: true, passive: true });
+          window.addEventListener("touchstart", warmArm, { once: true, passive: true });
+          window.addEventListener("keydown", warmArm, { once: true });
+
+          return () => {
+            window.removeEventListener("pointerdown", warmArm);
+            window.removeEventListener("touchstart", warmArm);
+            window.removeEventListener("keydown", warmArm);
+          };
+        }, []);
+
+        useEffect(() => {
+          return () => {
+            clearTimers();
+          };
+        }, []);
+
+        useEffect(() => {
+          clearTimers();
+          setSequence([]);
+          setTraces({});
+          if (!locked) {
+            setStatus("idle");
+            setStatusText("Awaiting input");
+          }
+        }, [doorIndex]);
+
+        useEffect(() => {
+          if (locked || status === "success" || status === "error" || sequence.length === 0) {
+            if (inactivityTimerRef.current) {
+              clearTimeout(inactivityTimerRef.current);
+              inactivityTimerRef.current = null;
+            }
+            return;
+          }
+
+          inactivityTimerRef.current = setTimeout(() => {
+            hardResetProgress("inactivity");
+          }, INACTIVITY_MS);
+
+          return () => {
+            if (inactivityTimerRef.current) {
+              clearTimeout(inactivityTimerRef.current);
+              inactivityTimerRef.current = null;
+            }
+          };
+        }, [sequence, locked, status]);
+
+        const applyFailedAttempt = () => {
+          setAttempts((prev) => {
+            const next = prev + 1;
+            if (next >= MAX_ATTEMPTS) {
+              setLocked(true);
+              setStatus("locked");
+              setStatusText("LOCKED: MAX ATTEMPTS");
+            }
+            return next;
+          });
+        };
+
+        const onAdminTap = () => {
+          const now = Date.now();
+          adminTapRef.current = [...adminTapRef.current, now].filter((stamp) => now - stamp < ADMIN_TAP_WINDOW_MS);
+          if (adminTapRef.current.length >= 3) {
+            adminTapRef.current = [];
+            fullAdminReset();
+          }
+        };
+
+        const onPress = async (value, idx) => {
+          if (!activeDoor || locked || status === "error" || status === "success") return;
+          if (traces[idx]) return;
+
+          await armAudio();
+          audio.current.click();
+
+          const nextStep = sequence.length;
+          const expected = targetChars[nextStep];
+
+          if (value !== expected) {
+            setStatus("error");
+            setStatusText("SEQUENCE REJECTED");
+            setTraces((prev) => ({ ...prev, [idx]: nextStep + 1 }));
+            applyFailedAttempt();
+            audio.current.error();
+
+            errorTimerRef.current = setTimeout(() => {
+              setSequence([]);
+              setTraces({});
+              setStatus((current) => (current === "locked" ? "locked" : "idle"));
+              setStatusText((current) => (current === "LOCKED: MAX ATTEMPTS" ? current : "Awaiting input"));
+            }, ERROR_RESET_MS);
+            return;
+          }
+
+          const updatedSequence = [...sequence, value];
+          setSequence(updatedSequence);
+          setTraces((prev) => ({ ...prev, [idx]: nextStep + 1 }));
+          setStatus("active");
+          setStatusText(`Input ${updatedSequence.length}/9`);
+
+          if (updatedSequence.length === 9) {
+            setStatus("success");
+            setStatusText("ACCESS GRANTED");
+            setAttempts(0);
+            audio.current.success();
+          }
+        };
+
+        const panelTone =
+          status === "success"
+            ? "border-lime-300/70 shadow-[0_0_34px_rgba(143,208,122,0.35)]"
+            : status === "error" || status === "locked"
+              ? "border-red-400/70 shadow-[0_0_30px_rgba(217,108,95,0.42)]"
+              : "border-amber-300/45 shadow-[0_0_28px_rgba(201,139,78,0.26)]";
+
+        return html`
+          <main className="relative min-h-screen flex items-center justify-center p-4 sm:p-6">
+            <${motion.section}
+              initial=${reduceMotion ? false : { opacity: 0, y: 20, scale: 0.99 }}
+              animate=${{ opacity: 1, y: 0, scale: 1 }}
+              transition=${{ duration: reduceMotion ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className=${`noise worn-shell crt-flicker steel relative w-full max-w-md rounded-2xl p-4 sm:p-5 border ${panelTone}`}
+            >
+              <div className="trace-overlay"></div>
+              <div className="fault-flicker"></div>
+              <header className="relative z-10 flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <button
+                    className="focus-ring orbitron min-h-11 px-1 text-xs uppercase tracking-[0.22em] text-amber-200/90 hover:text-amber-100 active:scale-[0.98] transition duration-200"
+                    onPointerDown=${armAudioFromGesture}
+                    onTouchStart=${armAudioFromGesture}
+                    onClick=${onAdminTap}
+                    title="Access point"
+                    aria-label="Admin reset trigger"
+                  >
+                    Access Point
+                  </button>
+                  <h1 className="orbitron mt-1 text-lg sm:text-xl font-extrabold text-stone-100">Station Door Matrix</h1>
+                  <p className="text-amber-100/55 text-sm">9-step letter sequence protocol</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-amber-100/80">
+                  <${Radar} size=${16} className="text-amber-300" />
+                  <span>Attempts ${attempts}/${MAX_ATTEMPTS}</span>
+                  ${audioArmed ? html`<span className="text-lime-300/90">AUDIO ONLINE</span>` : html`<span className="text-amber-200/70">TAP TO ARM AUDIO</span>`}
+                </div>
+              </header>
+
+              ${loading
+                ? html`<p className="relative z-10 text-amber-100/85">Loading doors.yaml...</p>`
+                : errorText
+                  ? html`<div className="relative z-10 rounded-lg border border-red-500/40 bg-red-950/40 p-3 text-red-200 text-sm">${errorText}</div>`
+                  : doorNotFound
+                    ? html`
+                        <div className="relative z-10 rounded-lg border border-amber-500/40 bg-amber-950/35 p-3 text-amber-200 text-sm space-y-2">
+                          <p className="orbitron text-xs tracking-[0.12em] uppercase">Unknown Door Route</p>
+                          <p>Use one of these URLs:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            ${doors.map((door, i) => {
+                              const href = `?door=${encodeURIComponent(slugifyDoorName(door.name) || i)}`;
+                              return html`<li key=${door.name}><a className="text-amber-200 hover:text-amber-100" href=${href}>${door.name}</a></li>`;
+                            })}
+                          </ul>
+                        </div>
+                      `
+                  : activeDoor
+                    ? html`
+                        <div className="relative z-10 space-y-4">
+                          <div className="rounded-xl border border-amber-900/70 bg-stone-950/65 px-3 py-2">
+                            <p className="orbitron text-[11px] uppercase tracking-[0.18em] text-amber-100/55">Door Endpoint</p>
+                            <p className="door-name text-amber-100 text-base font-semibold">${activeDoor.name}</p>
+                          </div>
+
+                          <div className="rounded-xl border border-amber-900/70 bg-stone-950/65 px-3 py-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              ${status === "locked"
+                                ? html`<${Lock} size=${17} className="text-red-300 status-fault" />`
+                                : status === "success"
+                                  ? html`<${CheckCircle2} size=${17} className="text-lime-300" />`
+                                  : status === "error"
+                                    ? html`<${ShieldAlert} size=${17} className="text-red-300 status-fault" />`
+                                    : html`<${Radar} size=${17} className="text-amber-300" />`}
+                              <span className="orbitron text-xs tracking-[0.12em] text-amber-100/95" role="status" aria-live="polite">${statusText}</span>
+                            </div>
+                            <button
+                              className="focus-ring inline-flex min-h-11 items-center gap-1 rounded px-1 text-xs text-amber-100/70 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-45 transition"
+                              onPointerDown=${armAudioFromGesture}
+                              onTouchStart=${armAudioFromGesture}
+                              onClick=${() => hardResetProgress("manual")}
+                              disabled=${locked}
+                              aria-label="Clear current input"
+                            >
+                              <${RefreshCw} size=${13} />
+                              Clear
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            ${activeDoor.grid.map((letter, idx) => {
+                              const traceNo = traces[idx] || 0;
+                              const disabled = Boolean(traceNo) || locked || status === "success";
+                              const isError = status === "error";
+                              const className = disabled
+                                ? traceNo
+                                  ? isError
+                                    ? "border-red-500/70 bg-red-950/40 text-red-100"
+                                    : "border-amber-300/65 bg-amber-950/30 text-amber-100"
+                                  : "border-stone-700 bg-stone-950/70 text-stone-500"
+                                : "border-amber-500/45 bg-stone-900/70 text-amber-50 hover:bg-amber-950/35 hover:border-amber-300/80";
+
+                              return html`
+                                <${motion.button}
+                                  key=${`${letter}-${idx}`}
+                                  whileHover=${disabled || reduceMotion ? {} : { y: -1, scale: 1.01 }}
+                                  whileTap=${disabled || reduceMotion ? {} : { scale: 0.95 }}
+                                  onPointerDown=${armAudioFromGesture}
+                                  onTouchStart=${armAudioFromGesture}
+                                  onClick=${() => onPress(letter, idx)}
+                                  disabled=${disabled}
+                                  aria-label=${`Key ${letter}${traceNo ? `, already used as step ${traceNo}` : ""}`}
+                                  transition=${{ duration: reduceMotion ? 0 : 0.16, ease: [0.25, 1, 0.5, 1] }}
+                                  className=${`focus-ring relative min-h-24 sm:min-h-28 rounded-xl border text-2xl sm:text-3xl orbitron font-bold transition duration-200 disabled:cursor-not-allowed ${className}`}
+                                >
+                                  ${traceNo
+                                    ? html`<span className="absolute right-2 top-2 text-[11px] rounded-full border border-amber-300/50 bg-stone-950/80 w-5 h-5 flex items-center justify-center">${traceNo}</span>`
+                                    : null}
+                                  <span>${letter}</span>
+                                </${motion.button}>
+                              `;
+                            })}
+                          </div>
+
+                          <${AnimatePresence}>
+                            ${status === "locked"
+                              ? html`
+                                  <${motion.div}
+                                    initial=${reduceMotion ? false : { opacity: 0, y: 5 }}
+                                    animate=${{ opacity: 1, y: 0 }}
+                                    exit=${reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                                    transition=${{ duration: reduceMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+                                    className="rounded-lg border border-red-500/55 bg-red-950/45 p-3 text-red-100"
+                                  >
+                                    Panel locked after ${MAX_ATTEMPTS} failed attempts.
+                                  </${motion.div}>
+                                `
+                              : null}
+                          </${AnimatePresence}>
+                        </div>
+                      `
+                    : null}
+            </${motion.section}>
+          </main>
+        `;
+      }
+
+      const root = createRoot(document.getElementById("root"));
+      root.render(html`<${App} />`);
+    </script>
+  </body>
+</html>

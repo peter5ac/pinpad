@@ -1,0 +1,19 @@
+{
+  "name": "pinpad-doors",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TTRPG door pinpad prop with YAML-configured doors.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "doors": "node server.js",
+    "start": "node server.js",
+    "doors:links": "node scripts/print-door-links.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  }
+}
