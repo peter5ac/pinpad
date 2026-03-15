@@ -24,9 +24,7 @@ A single-screen TTRPG digital prop that simulates a worn space-station access pa
 
 ## Screenshots / Demo
 
-Add media files under `docs/media` (for example `panel-screenshot.png` or `panel-demo.gif`) and reference them here when publishing.
-
-See [docs/media/README.md](docs/media/README.md).
+![Pinpad screenshot](pinpad.png)
 
 ## Requirements
 
