@@ -1,4 +1,4 @@
 doors:
   - name: "ARMORY SEC"
     answer: "PROJECTIL"
-    grid: ["P", "R", "O", "E", "J", "I", "L", "I", "T"]
+    grid: ["P", "R", "O", "E", "J", "I", "L", "C", "T"]
