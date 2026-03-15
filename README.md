@@ -134,3 +134,9 @@ In `public/index.html`, adjust:
 - Issues can be opened with:
   - [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md)
   - [.github/ISSUE_TEMPLATE/feature_request.md](.github/ISSUE_TEMPLATE/feature_request.md)
+ 
+## AI
+
+- Inital chat with Gemini that provided the prompt to
+- Co-Pilot which did most of the work
+- Used [https://github.com/pbakaus/impeccable|impeccable] to polish and publish
